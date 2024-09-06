@@ -22,9 +22,9 @@
 [0m[[0m[0mdebug[0m] [0m[0mcompilation cycle 1[0m
 [0m[[0m[0minfo[0m] [0m[0mcompiling 1 Scala source to /Users/bhrigu/IdeaProjects/Zeotap-Assignments/Scala Assignment/target/scala-3.3.3/classes ...[0m
 [0m[[0m[0mdebug[0m] [0m[0mReturning already retrieved and compiled bridge: /Users/bhrigu/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-sbt-bridge/3.3.3/scala3-sbt-bridge-3.3.3.jar.[0m
-[0m[[0m[0mdebug[0m] [0m[0m[zinc] Running cached compiler 78db041b for Scala Compiler version 3.3.3[0m
+[0m[[0m[0mdebug[0m] [0m[0m[zinc] Running cached compiler 3f54ed6a for Scala Compiler version 3.3.3[0m
 [0m[[0m[0mdebug[0m] [0m[0m[zinc] The Scala compiler is invoked with:[0m
 [0m[[0m[0mdebug[0m] [0m[0m	-classpath[0m
 [0m[[0m[0mdebug[0m] [0m[0m	/Users/bhrigu/IdeaProjects/Zeotap-Assignments/Scala Assignment/target/scala-3.3.3/classes:/Users/bhrigu/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.3/scala3-library_3-3.3.3.jar:/Users/bhrigu/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.12/scala-library-2.13.12.jar[0m
-[0m[[0m[0mdebug[0m] [0m[0mScala compilation took 3.603725849 s[0m
+[0m[[0m[0mdebug[0m] [0m[0mScala compilation took 3.575391573 s[0m
 [0m[[0m[0mdebug[0m] [0m[0mdone compiling[0m

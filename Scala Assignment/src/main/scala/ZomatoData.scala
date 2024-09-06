@@ -16,8 +16,8 @@ object ZomatoData {
                        costForTwo: Int
                        )
 
-  class CsvParse {
-    val filePath = "src/main/resources/zomato_cleaned.csv"
+  class CsvParse(filePath: String = "./src/main/resources/zomato_cleaned.csv") {
+
     var data : ArrayBuffer[Restaurant]= ArrayBuffer()
 
     def loadData(): Unit = {

@@ -12,8 +12,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="sbt: scala-sdk-3.3.3" level="project" />
-    <orderEntry type="library" name="sbt: org.scala-lang:scala-library:2.13.12:jar" level="project" />
-    <orderEntry type="library" name="sbt: org.scala-lang:scala3-library_3:3.3.3:jar" level="project" />
+    <orderEntry type="library" exported="" name="sbt: scala-sdk-3.3.3" level="project" />
+    <orderEntry type="library" exported="" name="sbt: org.scala-lang:scala-library:2.13.12:jar" level="project" />
+    <orderEntry type="library" exported="" name="sbt: org.scala-lang:scala3-library_3:3.3.3:jar" level="project" />
   </component>
 </module>

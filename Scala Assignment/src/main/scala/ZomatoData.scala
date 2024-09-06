@@ -1,4 +1,5 @@
 import scala.io.{Source,StdIn}
+import scala.util.{Try}
 import scala.collection.mutable.ArrayBuffer
 
 object ZomatoData {
@@ -16,31 +17,40 @@ object ZomatoData {
                        )
 
   class CsvParse {
-    val filePath = "../resources/zomato_cleaned - zomato_cleaned.csv"
+    val filePath = "src/main/resources/zomato_cleaned.csv"
     var data : ArrayBuffer[Restaurant]= ArrayBuffer()
 
-    def loadData():Unit = {
-      val source = Source.fromFile(filePath)
-      try{
-        for( line <- source.getLines()){
+    def loadData(): Unit = {
+      val source = Source.fromResource("zomato_cleaned.csv")
+      try {
+        for (line <- source.getLines()) {
           val fields = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)").map(_.trim.replaceAll("^\"|\"$", ""))
-          if(fields.length == 9){
-            data +=Restaurant(
-              id = fields(0).toInt,
+
+          if (fields.length == 9) {
+            data += Restaurant(
+              id = parseInt(fields(0)),
               name = fields(1),
-              rating = fields(2).split("/")(0).toDouble,
-              votes = fields(3).toInt,
+              rating = parseDouble(fields(2).split("/")(0)),
+              votes = parseInt(fields(3)),
               location = fields(4),
               restaurant_type = fields(5),
               dishesLiked = fields(6).split(",").map(_.trim).toList,
               cuisines = fields(7).split(",").map(_.trim).toList,
-              costForTwo = fields(8).toInt
+              costForTwo = parseInt(fields(8))
             )
           }
         }
-      }finally {
+      } finally {
         source.close()
       }
+    }
+
+    def parseInt(s: String): Int = {
+      Try(s.replace(",", "").toInt).getOrElse(0)
+    }
+
+    def parseDouble(s: String): Double = {
+      Try(s.replace(",", "").toDouble).getOrElse(0.0)
     }
 
     def topNrestaurantsByRatings (n:Int): Seq[(String,Double)] = {
@@ -132,7 +142,7 @@ object ZomatoData {
         val location :String = StdIn.readLine()
         println("Enter Restaurant Type:")
         val restaurantType: String = StdIn.readLine()
-        println(s"Top $n restaurants by rating in a given location and restaurant type")
+        println(s"Top $n restaurants by rating in $location and $restaurantType restaurant")
         println(csv.topNrestaurantsByRatingsLocationType(n,location,restaurantType))
       case 3 =>
         println("Enter N:")

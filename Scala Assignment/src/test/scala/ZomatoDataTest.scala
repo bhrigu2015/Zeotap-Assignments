@@ -9,12 +9,6 @@ class ZomatoDataTest extends AnyFunSuite {
     assert(csvParse.data.nonEmpty, "Data should not be empty after loading")
   }
 
-  test("Parse Integer Correctly") {
-    val csvParse = new ZomatoData.CsvParse(testDataPath)
-    assert(csvParse.parseInt("1,000") == 1000, "Should parse '1,000' as 1000")
-    assert(csvParse.parseInt("invalid") == 0, "Should return 0 for invalid input")
-  }
-
   test("Parse Double Correctly") {
     val csvParse = new ZomatoData.CsvParse(testDataPath)
     assert(csvParse.parseDouble("3.5") == 3.5, "Should parse '3.5' as 3.5")

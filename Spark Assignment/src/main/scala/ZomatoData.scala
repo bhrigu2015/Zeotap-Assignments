@@ -1,8 +1,7 @@
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, SparkSession}
-
+import org.apache.spark.sql.functions._
 import scala.io.StdIn
-import scala.util.Try
 
 object ZomatoData {
 
@@ -25,67 +24,70 @@ object ZomatoData {
       StructField("costForTwo", IntegerType, nullable = true)
     ))
 
-    val df: DataFrame = spark.read
+    val orignaldf: DataFrame = spark.read
       .option("header", value = false)
       .schema(schema)
-      .csv("resources/zomato_cleaned.csv")
+      .csv(filePath)
+
+    val parseRating = udf((ratingStr: String) => {
+      ratingStr.split("/")(0).toDouble
+    })
+
+    val processedDf = orignaldf.withColumn("numericRating", parseRating(col("rating")))
 
     def topNrestaurantsByRatings(n: Int)  = {
-      df.orderBy(df("rating").desc , df("numberOfVotes").desc)
+      processedDf.orderBy(col("numericRating").desc, col("numberOfVotes").desc)
         .select("restaurantName", "rating", "numberOfVotes", "location", "typesOfCuisines", "costForTwo")
-        .show(n,truncate=false)
+        .show(n, truncate = false)
     }
 
-//    def topNrestaurantsByRatingsLocationType(n: Int, location: String, restaurantType: String): Seq[(String, Double)] = {
-//      data.filter(r => r.location == location && r.restaurant_type == restaurantType)
-//        .sortBy(r => (-r.rating))
-//        .take(n)
-//        .map(r => (r.name, r.rating))
-//        .toSeq
-//    }
-//
-//    def topNrestaurantsByratingLeastVotes(n: Int, location: String): Seq[(String, Double, Int)] = {
-//      data.filter(r => r.location == location)
-//        .sortBy(r => (-r.rating, r.votes))
-//        .map(r => (r.name, r.rating, r.votes))
-//        .toSeq
-//    }
-//
-//    def noOfDishesLikedInEveryRestaurant(): Seq[(String, Int)] = {
-//      data.map(r => (r.name, r.dishesLiked.size))
-//        .sortBy(-_._2)
-//        .toSeq
-//    }
-//
-//    def noOfDistinctLocations(): Int = {
-//      data.map(_.location)
-//        .distinct
-//        .size
-//    }
-//
-//    def noOfDistinctCuisinesAtLocation(location: String): Int = {
-//      data.filter(r => r.location == location)
-//        .flatMap(_.cuisines)
-//        .distinct
-//        .size
-//    }
-//
-//    def noOfDistinctCuisinesAtEachLocation(): Seq[(String, Int)] = {
-//      data.groupBy(_.location)
-//        .map { case (location, restaurants) =>
-//          (location, restaurants.flatMap(_.cuisines).distinct.size)
-//        }
-//        .toSeq
-//    }
-//
-//    def countOfRestaurantsForEachCuisine(): Seq[(String, Int)] = {
-//      data.flatMap(_.cuisines)
-//        .groupBy(identity)
-//        .map { case (cuisine, occurrences) =>
-//          (cuisine, occurrences.size)
-//        }
-//        .toSeq
-//    }
+    def topNrestaurantsByRatingsLocationType(n: Int, location: String, restaurantType: String): Unit = {
+      processedDf.filter(col("location") === location && col("restaurantType") === restaurantType)
+        .orderBy(col("numericRating").desc, col("numberOfVotes").desc)
+        .select("restaurantName", "rating", "numberOfVotes", "location", "typesOfCuisines", "costForTwo")
+        .show(n, truncate = false)
+    }
+
+    def topNrestaurantsByratingLeastVotes(n: Int, location: String): Unit = {
+      processedDf.filter(col("location") === location)
+        .orderBy(col("numericRating").desc, col("numberOfVotes").asc)
+        .select("restaurantName", "rating", "numberOfVotes", "location", "typesOfCuisines", "costForTwo")
+        .show(n, truncate = false)
+    }
+
+    def noOfDishesLikedInEveryRestaurant(): Unit = {
+      processedDf.withColumn("dishCount", size(split(col("dishesLiked"), ",")))
+        .select("restaurantName", "dishCount")
+        .orderBy(col("dishCount").desc)
+        .show(truncate = false)
+    }
+
+    def noOfDistinctLocations(): Long = {
+      processedDf.select(col("location")).distinct().count()
+    }
+
+    def noOfDistinctCuisinesAtLocation(location: String): Long = {
+      processedDf.filter(col("location") === location)
+        .select(explode(split(col("typesOfCuisines"), ",")).as("cuisine"))
+        .distinct()
+        .count()
+    }
+
+    def noOfDistinctCuisinesAtEachLocation(): Unit = {
+      processedDf.select(col("location"), explode(split(col("typesOfCuisines"), ",")).as("cuisine"))
+      .groupBy("location")
+      .agg(countDistinct("cuisine").as("distinctCuisines"))
+      .orderBy(col("distinctCuisines").desc)
+      .show(truncate = false)
+    }
+
+    def countOfRestaurantsForEachCuisine(): Unit = {
+      processedDf.select(explode(split(col("typesOfCuisines"),",")).as("cuisines"))
+        .groupBy("cuisine")
+        .count()
+        .orderBy(col("count").desc)
+        .show(truncate = false)
+    }
   }
 
   def main(args: Array[String]): Unit = {
@@ -105,7 +107,7 @@ object ZomatoData {
 
     val number: Int = StdIn.readLine().toInt
 
-    val res = number match {
+    number match {
       case 1 =>
         println("Enter N:")
         val n: Int = StdIn.readInt()
@@ -119,32 +121,34 @@ object ZomatoData {
         println("Enter Restaurant Type:")
         val restaurantType: String = StdIn.readLine()
         println(s"Top $n restaurants by rating in $location and $restaurantType restaurant")
-//        println(csv.topNrestaurantsByRatingsLocationType(n, location, restaurantType))
+        csv.topNrestaurantsByRatingsLocationType(n, location, restaurantType)
       case 3 =>
         println("Enter N:")
         val n: Int = StdIn.readInt()
         println("Enter Location:")
         val location: String = StdIn.readLine()
         println(s"Top $n restaurants by rating and least number of votes in $location")
-//        println(csv.topNrestaurantsByratingLeastVotes(n, location))
+        csv.topNrestaurantsByratingLeastVotes(n, location)
       case 4 =>
         println("No. of dishes liked in every restaurant")
-//        println(csv.noOfDishesLikedInEveryRestaurant())
+        csv.noOfDishesLikedInEveryRestaurant()
       case 5 =>
         println("No. of distinct locations")
-//        println(csv.noOfDistinctLocations())
+        println(csv.noOfDistinctLocations())
       case 6 =>
         println("Enter Location:")
         val location: String = StdIn.readLine()
         println(s"No. of distinct cuisines at $location")
-//        println(csv.noOfDistinctCuisinesAtLocation(location))
+        println(csv.noOfDistinctCuisinesAtLocation(location))
       case 7 =>
         println("No. of distinct cuisines at each location")
-//        println(csv.noOfDistinctCuisinesAtEachLocation())
+        csv.noOfDistinctCuisinesAtEachLocation()
       case 8 =>
         println("Count of restaurants for each cuisine type")
-//        println(csv.countOfRestaurantsForEachCuisine())
+        csv.countOfRestaurantsForEachCuisine()
       case _ => println("Enter a valid integer")
     }
+
+    csv.spark.stop()
   }
 }
